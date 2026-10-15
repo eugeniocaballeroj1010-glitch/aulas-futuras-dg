@@ -1,0 +1,13 @@
+{
+  "perfil": "prod",
+  "origen": "../contenido",
+  "lanzador": "../lanzador/AulasFuturas.prod.exe",
+  "logo": "../marca/logo.png",
+  "salida": "C:/AFDG-Publicacion/produccion",
+  "version": "2026.1",
+  "secuencia": 1,
+  "capacidad_usb_gb": 16,
+  "lanzador_minimo": "1.0.0",
+  "exigir_firma_lanzador": false,
+  "_nota": "Cambie exigir_firma_lanzador a true cuando firme AulasFuturas.prod.exe con su certificado Authenticode."
+}

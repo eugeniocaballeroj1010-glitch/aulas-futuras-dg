@@ -1,0 +1,159 @@
+AULAS FUTURAS DG — CÓMO PREPARAR TU PRIMERA USB PARA LA VENTA
+================================================================
+
+Tiempo total: unos 40 minutos la primera vez. Después, cada USB toma 3 minutos.
+
+QUÉ TRAE ESTE KIT
+  contenido\            9 actividades de 1.er grado listas para usar sin internet
+  lanzador\             AulasFuturas-base.exe (el programa que abre la USB)
+  afdg-publicacion\     las herramientas que cifran, firman y preparan cada USB
+  marca\logo.png        tu logo (reemplázalo por el tuyo, ver paso 0.4)
+
+QUÉ NECESITAS
+  - Una PC con Windows 10 u 11 (la "estación emisora").
+  - Python 3.11 o superior: https://www.python.org/downloads/
+    Al instalar, marca la casilla "Add python.exe to PATH".
+  - USB nuevas de 16 GB de buena marca (Kingston, SanDisk). Deben tener número de serie.
+  - Otra PC con Windows para probar (la de la escuela, por ejemplo).
+  - Una segunda memoria USB para guardar el respaldo del almacén.
+
+
+PASO 0 — PREPARAR LA PC (una sola vez)
+---------------------------------------
+1. El proyecto vive en  C:\Users\eugen\Documents\Claude\Projects\AULAS FUTURAS USB
+   (con las carpetas contenido, lanzador, marca y afdg-publicacion).
+2. Abre PowerShell (botón Inicio, escribe "PowerShell") y escribe:
+
+     cd "C:\Users\eugen\Documents\Claude\Projects\AULAS FUTURAS USB\afdg-publicacion"
+     python -m pip install -r requirements.txt
+     python demo_prueba.py
+
+   Debe terminar con:  14/14 comprobaciones correctas
+
+3. Conecta una USB y comprueba que tiene número de serie:
+
+     Get-Disk | ft Number,BusType,Model,SerialNumber
+
+   En la fila "USB" debe aparecer un SerialNumber. Si está vacío, esa marca no sirve.
+
+
+4. Tu logo: guarda tu logo como  ...\AULAS FUTURAS USB\marca\logo.png  (reemplaza el provisional).
+   Sirve PNG o JPG de cualquier tamaño; el borde blanco se recorta solo.
+   Con él, la USB aparece en "Este equipo" con tu logo y el nombre "Aulas Futuras DG",
+   y el programa lo muestra en la ventana, la barra de tareas y el menú.
+
+   Nota: por seguridad, Windows NO permite que una USB abra un programa sola (desde
+   Windows 7). Por eso, al abrir la memoria el docente solo verá dos archivos:
+   AulasFuturas.exe (doble clic para empezar) y LEEME.txt. Todo lo demás queda oculto.
+
+
+PASO 1 — ENSAYO CON EL PERFIL DE PRUEBA (recomendado antes de vender)
+----------------------------------------------------------------------
+Esto usa claves de prueba. Las USB de prueba NO sirven para vender.
+
+En PowerShell, dentro de la carpeta afdg-publicacion del proyecto:
+
+     $env:AFDG_VAULT = "C:\AlmacenAFDG"
+     python afdg_emisor.py --perfil test init --salida-publica config\claves_publicas.test.json
+        (te pide una frase de paso de prueba, mínimo 12 caracteres)
+     python afdg_emisor.py --perfil test sellar-lanzador --entrada ..\lanzador\AulasFuturas-base.exe --salida ..\lanzador\AulasFuturas.test.exe
+     python afdg_publicar.py --config config\publicacion.prueba.json revisar
+     python afdg_publicar.py --config config\publicacion.prueba.json maestra
+
+Formatea una USB en exFAT (clic derecho en la unidad > Formatear) y anota su letra, por ejemplo E:
+
+     python afdg_publicar.py --config config\publicacion.prueba.json unidad --maestra ultima --destino E:\ --cliente C-PRUEBA --edicion primer-grado --grados 1
+
+Debe terminar con:  Entregar la unidad.
+
+Ahora prueba la USB:
+  a) Abre E:\AulasFuturas.exe en esta PC. Debe aparecer el menú con las actividades.
+  b) Abre la misma USB en OTRA PC. Debe funcionar igual, sin internet.
+  c) Copia todos los archivos de esa USB a otra memoria y ábrela: debe decir "Código L01".
+  d) Si Windows muestra "Windows protegió su PC": pulsa "Más información" > "Ejecutar de todas formas".
+  e) Si dice "Código W01": esa PC no tiene WebView2; instálalo desde
+     https://go.microsoft.com/fwlink/p/?LinkId=2124703
+
+Si a), b) y c) salen bien, pasa al paso 2. Si algo falla, anota el código y el texto exacto.
+
+
+PASO 2 — CREAR EL ALMACÉN DE PRODUCCIÓN (una sola vez)
+-------------------------------------------------------
+IMPORTANTE: el almacén contiene tus claves. Si lo pierdes, no podrás dar soporte ni
+reemplazar las USB ya vendidas. Si alguien lo copia, puede fabricar USB piratas.
+Ideal: guárdalo en una unidad con BitLocker activado.
+
+     $env:AFDG_VAULT = "C:\AlmacenAFDG"
+     python afdg_emisor.py --perfil prod init --salida-publica config\claves_publicas.prod.json
+
+  - Elige una frase de paso NUEVA y larga (ej. 4 o 5 palabras). Escríbela en papel y
+    guárdala lejos de la PC. Sin ella no se puede emitir ninguna licencia.
+
+Respaldo inmediato: copia la carpeta C:\AlmacenAFDG\prod completa a tu USB de respaldo
+(con BitLocker To Go si es posible) y guárdala en otro lugar. NUNCA la vendas ni la subas a la nube.
+
+Sella el lanzador de producción:
+
+     python afdg_emisor.py --perfil prod sellar-lanzador --entrada ..\lanzador\AulasFuturas-base.exe --salida ..\lanzador\AulasFuturas.prod.exe
+
+(Opcional, recomendado más adelante: firmar AulasFuturas.prod.exe con un certificado
+Authenticode para que Windows no muestre la advertencia. Después de firmarlo, cambia
+"exigir_firma_lanzador" a true en config\publicacion.produccion.json.)
+
+
+PASO 3 — COPIA MAESTRA DE PRODUCCIÓN (una vez por versión del contenido)
+-------------------------------------------------------------------------
+     python afdg_publicar.py --config config\publicacion.produccion.json revisar
+     python afdg_publicar.py --config config\publicacion.produccion.json maestra
+
+Debe decir:  Copia maestra APROBADA
+El informe queda en C:\AFDG-Publicacion\produccion\maestras\...\informe.md
+
+
+PASO 4 — TU PRIMERA USB DE VENTA
+--------------------------------
+1. Formatea la USB nueva en exFAT. Debe quedar vacía. Anota su letra (ej. E:).
+2. Asigna una referencia al cliente. NO uses nombre ni cédula: usa un código, ej. C-0001,
+   y anota en tu cuaderno o Excel a quién corresponde.
+3. Ejecuta:
+
+     python afdg_publicar.py --config config\publicacion.produccion.json unidad --maestra ultima --destino E:\ --cliente C-0001 --edicion primer-grado --grados 1
+
+4. Si termina con "Entregar la unidad.":
+     - Anota el número de unidad que muestra (ej. AFDG-26-000001).
+     - Pega una etiqueta en la USB con ese número.
+     - Ábrela una vez en otra PC para confirmar.
+     - ¡Lista para entregar!
+   Si termina con "NO entregar esta unidad.": lee el informe, formatea la USB y repite
+   (recibirá un número nuevo). Si se repite, cambia de USB.
+
+5. Al final del día de ventas, vuelve a copiar C:\AlmacenAFDG\prod a tu USB de respaldo.
+
+
+PARA LAS SIGUIENTES USB
+-----------------------
+Repite solo el PASO 4 cambiando la USB y el código del cliente.
+Para ver todas las unidades vendidas:
+
+     python afdg_emisor.py --perfil prod registro
+
+
+SOPORTE AL CLIENTE
+------------------
+- La USB dejó de abrir pero la memoria funciona (formatearon o borraron archivos):
+     formatéala y repite el comando del paso 4 con el mismo --cliente y agregando  --reemitir AFDG-26-000123
+- La USB se dañó o se perdió: prepara una nueva (paso 4) agregando  --sustituye AFDG-26-000123
+  y después exporta claves y vuelve a sellar el lanzador antes de la próxima maestra.
+- Revisar una USB que te devuelven:
+     python afdg_publicar.py --config config\publicacion.produccion.json verificar --destino E:\
+- Robo o fraude:
+     python afdg_emisor.py --perfil prod marcar --unidad AFDG-26-000123 --evento revocada --detalle "robo"
+
+
+LO QUE NUNCA DEBES HACER
+------------------------
+- Vender una USB preparada con el perfil de prueba.
+- Copiar *.pem, pepper.bin, ceks o registro.jsonl a una USB de cliente, a la nube o a GitHub.
+- Editar archivos dentro de la carpeta maestras\...\usb (invalida la maestra).
+- Reutilizar el número de "secuencia" de una maestra ya publicada (súbelo en la configuración
+  cuando agregues o cambies actividades).

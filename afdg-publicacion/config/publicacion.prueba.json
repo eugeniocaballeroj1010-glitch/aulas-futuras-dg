@@ -1,0 +1,12 @@
+{
+  "perfil": "test",
+  "origen": "../contenido",
+  "lanzador": "../lanzador/AulasFuturas.test.exe",
+  "logo": "../marca/logo.png",
+  "salida": "C:/AFDG-Publicacion/prueba",
+  "version": "2026.1",
+  "secuencia": 1,
+  "capacidad_usb_gb": 16,
+  "lanzador_minimo": "1.0.0",
+  "exigir_firma_lanzador": false
+}

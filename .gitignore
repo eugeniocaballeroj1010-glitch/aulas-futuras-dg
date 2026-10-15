@@ -1,0 +1,23 @@
+# Secretos: nunca al repositorio
+*.pem
+*.key
+*.pfx
+*.p12
+pepper.bin
+ceks/
+ceks.json
+registro.jsonl
+.afdg-vault/
+.afdg-test-keys/
+# Contenido de pago y salidas (el repositorio es público)
+contenido/
+usb_out/
+salida/
+# Compilación
+bin/
+obj/
+dist/
+*.exe
+__pycache__/
+fuentes-html/
+lanzador/dist/

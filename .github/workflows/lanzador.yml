@@ -1,0 +1,40 @@
+name: Lanzador y herramientas
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Demo de publicación (14 comprobaciones)
+        working-directory: afdg-publicacion
+        shell: pwsh
+        run: |
+          pip install -r requirements.txt
+          $env:AFDG_DEMO_EXPORT = "$env:RUNNER_TEMP\demo.json"
+          python demo_prueba.py
+      - name: Pruebas cruzadas del núcleo C#
+        working-directory: lanzador/pruebas
+        shell: pwsh
+        run: |
+          $d = Get-Content "$env:RUNNER_TEMP\demo.json" | ConvertFrom-Json
+          $d.esperado | ConvertTo-Json -Depth 5 | Set-Content "$env:RUNNER_TEMP\esperado.json"
+          dotnet run -c Release -- $d.usb $d.modelo $d.serie "$env:RUNNER_TEMP\esperado.json"
+      - name: Compilar AulasFuturas.exe (base, sin sellar)
+        working-directory: lanzador
+        run: dotnet publish -c Release -o dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AulasFuturas-base
+          path: lanzador/dist/AulasFuturas.exe
