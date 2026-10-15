@@ -28,6 +28,7 @@ string Copia(Action<string>? alterar = null)
         var t = Path.Combine(d, Path.GetRelativePath(raiz, f));
         Directory.CreateDirectory(Path.GetDirectoryName(t)!);
         File.Copy(f, t);
+        File.SetAttributes(t, FileAttributes.Normal); // en Windows la USB tiene archivos ocultos/solo lectura
     }
     alterar?.Invoke(d);
     return d;
