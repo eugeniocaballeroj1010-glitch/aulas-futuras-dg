@@ -2,7 +2,7 @@ name: Lanzador y herramientas
 
 on:
   push:
-    branches: [main]
+    branches: [main, usb-primera-venta]
   pull_request:
   workflow_dispatch:
 
