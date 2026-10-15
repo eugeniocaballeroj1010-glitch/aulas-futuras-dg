@@ -30,7 +30,11 @@ jobs:
         run: |
           $d = Get-Content "$env:RUNNER_TEMP\demo.json" | ConvertFrom-Json
           $d.esperado | ConvertTo-Json -Depth 5 | Set-Content "$env:RUNNER_TEMP\esperado.json"
-          dotnet run -c Release -- $d.usb $d.modelo $d.serie "$env:RUNNER_TEMP\esperado.json"
+          $out = dotnet run -c Release -- $d.usb $d.modelo $d.serie "$env:RUNNER_TEMP\esperado.json" 2>&1
+          $code = $LASTEXITCODE
+          $out | ForEach-Object { Write-Output $_ }
+          if ($code -ne 0) { ($out | Select-Object -Last 25) | ForEach-Object { Write-Output "::error::$_" } }
+          exit $code
       - name: Compilar AulasFuturas.exe (base, sin sellar)
         working-directory: lanzador
         run: dotnet publish -c Release -o dist
